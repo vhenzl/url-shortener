@@ -10,7 +10,6 @@
 *.out
 
 # Go workspace files
-/go.sum
 /go.work
 
 # OS files
