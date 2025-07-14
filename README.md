@@ -5,10 +5,10 @@ A simple URL shortener web API written in Go.
 ## Structure
 
 - `cmd/urlshortener/` - Main application entrypoint
-- `internal/app/` - App-wide logic, wiring, use cases, service layer
-- `internal/handler/` - HTTP handlers (controllers)
-- `internal/domain/` - Domain: core logic, models, interfaces
-- `internal/storage/` - Data persistence (in-memory, DBs, etc)
+- `internal/application/` - Application logic, use cases, etc
+- `internal/presentation/` - HTTP handlers (controllers)
+- `internal/domain/` - Domain models and logic
+- `internal/infrastructure/` - Data persistence, etc
 
 ## Getting Started
 
