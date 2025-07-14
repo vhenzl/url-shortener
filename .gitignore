@@ -1,0 +1,21 @@
+# Go build and dependency files
+/bin/
+/build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace files
+/go.sum
+/go.work
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
