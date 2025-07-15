@@ -1,11 +1,14 @@
 package links
 
 import (
+	"errors"
 	"time"
 )
 
 type URL string
 type Slug string
+
+var ErrLinkNotFound = errors.New("link not found")
 
 // Link represents a named URL mapping.
 type Link struct {

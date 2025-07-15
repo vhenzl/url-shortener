@@ -1,0 +1,18 @@
+CREATE TABLE links (
+    id TEXT PRIMARY KEY,
+    slug TEXT NOT NULL UNIQUE,
+    target_url TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_links_slug ON links(slug);
+
+CREATE TABLE visits (
+    id TEXT PRIMARY KEY,
+    link_id TEXT NOT NULL,
+    visited_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (link_id) REFERENCES links(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_visits_link_id ON visits(link_id);

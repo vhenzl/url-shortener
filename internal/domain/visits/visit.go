@@ -1,10 +1,13 @@
 package visits
 
 import (
+	"errors"
 	"time"
 
 	"github.com/vhenzl/url-shortener/internal/domain/links"
 )
+
+var ErrVisitNotFound = errors.New("visit not found")
 
 // Visit represents a single access to a link.
 type Visit struct {
