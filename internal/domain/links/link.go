@@ -2,13 +2,10 @@ package links
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type URL string
 type Slug string
-type LinkID uuid.UUID
 
 // Link represents a named URL mapping.
 type Link struct {
