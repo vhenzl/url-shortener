@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 type LinkRepositoryTestSuite struct {
 	suite.Suite
+	ctx        context.Context
 	db         *sqlx.DB
 	repository *LinkRepository
 }
@@ -22,6 +24,7 @@ func TestLinkRepository(t *testing.T) {
 }
 
 func (s *LinkRepositoryTestSuite) SetupTest() {
+	s.ctx = context.Background()
 	s.db = testutil.NewTestDB(s.T())
 	err := testutil.RunMigrations(s.db.DB)
 	s.Require().NoError(err)
@@ -37,11 +40,11 @@ func (s *LinkRepositoryTestSuite) TestAddAndGetByID() {
 	link := links.NewLink(id, slug, url, now, now)
 
 	// Add to repository
-	err := s.repository.Add(link)
+	err := s.repository.Add(s.ctx, link)
 	s.Require().NoError(err)
 
 	// Get by ID
-	retrieved, err := s.repository.GetByID(id)
+	retrieved, err := s.repository.GetByID(s.ctx, id)
 	s.Require().NoError(err)
 	s.Equal(link.ID(), retrieved.ID())
 	s.Equal(link.Slug(), retrieved.Slug())
@@ -57,11 +60,11 @@ func (s *LinkRepositoryTestSuite) TestGetBySlug() {
 	link := links.NewLink(id, slug, url, now, now)
 
 	// Add to repository
-	err := s.repository.Add(link)
+	err := s.repository.Add(s.ctx, link)
 	s.Require().NoError(err)
 
 	// Get by slug
-	retrieved, err := s.repository.GetBySlug(slug)
+	retrieved, err := s.repository.GetBySlug(s.ctx, slug)
 	s.Require().NoError(err)
 	s.Equal(link.ID(), retrieved.ID())
 	s.Equal(link.Slug(), retrieved.Slug())
@@ -70,12 +73,12 @@ func (s *LinkRepositoryTestSuite) TestGetBySlug() {
 
 func (s *LinkRepositoryTestSuite) TestGetByID_NotFound() {
 	id := links.LinkID(uuid.New())
-	_, err := s.repository.GetByID(id)
+	_, err := s.repository.GetByID(s.ctx, id)
 	s.ErrorIs(err, links.ErrLinkNotFound)
 }
 
 func (s *LinkRepositoryTestSuite) TestGetBySlug_NotFound() {
 	slug := links.Slug("non-existent")
-	_, err := s.repository.GetBySlug(slug)
+	_, err := s.repository.GetBySlug(s.ctx, slug)
 	s.ErrorIs(err, links.ErrLinkNotFound)
 }

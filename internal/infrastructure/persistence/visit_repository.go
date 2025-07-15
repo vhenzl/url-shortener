@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -47,9 +48,9 @@ func (r *VisitRepository) domainToRecord(visit *visits.Visit) VisitRecord {
 	}
 }
 
-func (r *VisitRepository) GetByID(id visits.VisitID) (*visits.Visit, error) {
+func (r *VisitRepository) GetByID(ctx context.Context, id visits.VisitID) (*visits.Visit, error) {
 	var rec VisitRecord
-	err := r.db.Get(&rec, "SELECT * FROM visits WHERE id = ?", id.String())
+	err := r.db.GetContext(ctx, &rec, "SELECT * FROM visits WHERE id = ?", id.String())
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, visits.ErrVisitNotFound
@@ -59,9 +60,9 @@ func (r *VisitRepository) GetByID(id visits.VisitID) (*visits.Visit, error) {
 	return r.recordToDomain(rec)
 }
 
-func (r *VisitRepository) GetAllByLinkID(linkID links.LinkID) ([]*visits.Visit, error) {
+func (r *VisitRepository) GetAllByLinkID(ctx context.Context, linkID links.LinkID) ([]*visits.Visit, error) {
 	var recs []VisitRecord
-	err := r.db.Select(&recs, "SELECT * FROM visits WHERE link_id = ? ORDER BY visited_at DESC", linkID.String())
+	err := r.db.SelectContext(ctx, &recs, "SELECT * FROM visits WHERE link_id = ? ORDER BY visited_at DESC", linkID.String())
 	if err != nil {
 		return nil, fmt.Errorf("get all visits by link id: %w", err)
 	}
@@ -76,9 +77,9 @@ func (r *VisitRepository) GetAllByLinkID(linkID links.LinkID) ([]*visits.Visit, 
 	return visitsList, nil
 }
 
-func (r *VisitRepository) Add(visit *visits.Visit) error {
+func (r *VisitRepository) Add(ctx context.Context, visit *visits.Visit) error {
 	rec := r.domainToRecord(visit)
-	_, err := r.db.NamedExec(`
+	_, err := r.db.NamedExecContext(ctx, `
         INSERT INTO visits (id, link_id, visited_at)
         VALUES (:id, :link_id, :visited_at)
     `, &rec)

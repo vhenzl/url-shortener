@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 
 type VisitRepositoryTestSuite struct {
 	suite.Suite
+	ctx             context.Context
 	db              *sqlx.DB
 	visitRepository *VisitRepository
 	linkRepository  *LinkRepository
@@ -24,6 +26,7 @@ func TestVisitRepository(t *testing.T) {
 }
 
 func (s *VisitRepositoryTestSuite) SetupTest() {
+	s.ctx = context.Background()
 	s.db = testutil.NewTestDB(s.T())
 	err := testutil.RunMigrations(s.db.DB)
 	s.Require().NoError(err)
@@ -37,7 +40,7 @@ func (s *VisitRepositoryTestSuite) createTestLink() *links.Link {
 	url := links.URL("https://example.com")
 	now := time.Now().UTC()
 	link := links.NewLink(id, slug, url, now, now)
-	err := s.linkRepository.Add(link)
+	err := s.linkRepository.Add(s.ctx, link)
 	s.Require().NoError(err)
 	return link
 }
@@ -52,11 +55,11 @@ func (s *VisitRepositoryTestSuite) TestAddAndGetByID() {
 	visit := visits.NewVisit(id, link.ID(), now)
 
 	// Add to repository
-	err := s.visitRepository.Add(visit)
+	err := s.visitRepository.Add(s.ctx, visit)
 	s.Require().NoError(err)
 
 	// Get by ID
-	retrieved, err := s.visitRepository.GetByID(id)
+	retrieved, err := s.visitRepository.GetByID(s.ctx, id)
 	s.Require().NoError(err)
 	s.Equal(visit.ID(), retrieved.ID())
 	s.Equal(visit.LinkID(), retrieved.LinkID())
@@ -73,12 +76,12 @@ func (s *VisitRepositoryTestSuite) TestGetAllByLinkID() {
 		id := visits.NewVisitID()
 		now := time.Now().Add(time.Duration(i) * time.Hour).UTC() // Different times
 		allVisits[i] = visits.NewVisit(id, link.ID(), now)
-		err := s.visitRepository.Add(allVisits[i])
+		err := s.visitRepository.Add(s.ctx, allVisits[i])
 		s.Require().NoError(err)
 	}
 
 	// Get all visits for the link
-	retrieved, err := s.visitRepository.GetAllByLinkID(link.ID())
+	retrieved, err := s.visitRepository.GetAllByLinkID(s.ctx, link.ID())
 	s.Require().NoError(err)
 	s.Len(retrieved, len(allVisits))
 
@@ -93,13 +96,13 @@ func (s *VisitRepositoryTestSuite) TestGetAllByLinkID_NoVisits() {
 	link := s.createTestLink()
 
 	// Get visits for link with no visits
-	retrieved, err := s.visitRepository.GetAllByLinkID(link.ID())
+	retrieved, err := s.visitRepository.GetAllByLinkID(s.ctx, link.ID())
 	s.Require().NoError(err)
 	s.Empty(retrieved)
 }
 
 func (s *VisitRepositoryTestSuite) TestGetByID_NotFound() {
 	id := visits.VisitID(uuid.New())
-	_, err := s.visitRepository.GetByID(id)
+	_, err := s.visitRepository.GetByID(s.ctx, id)
 	s.ErrorIs(err, visits.ErrVisitNotFound)
 }

@@ -1,9 +1,13 @@
 package visits
 
-import "github.com/vhenzl/url-shortener/internal/domain/links"
+import (
+	"context"
+
+	"github.com/vhenzl/url-shortener/internal/domain/links"
+)
 
 type VisitRepository interface {
-	GetByID(id VisitID) (*Visit, error)
-	GetAllByLinkID(linkID links.LinkID) ([]*Visit, error)
-	Add(visit *Visit) error
+	GetByID(ctx context.Context, id VisitID) (*Visit, error)
+	GetAllByLinkID(ctx context.Context, linkID links.LinkID) ([]*Visit, error)
+	Add(ctx context.Context, visit *Visit) error
 }

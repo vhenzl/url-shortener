@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -52,9 +53,9 @@ func (r *LinkRepository) domainToRecord(link *links.Link) LinkRecord {
 	}
 }
 
-func (r *LinkRepository) GetByID(id links.LinkID) (*links.Link, error) {
+func (r *LinkRepository) GetByID(ctx context.Context, id links.LinkID) (*links.Link, error) {
 	var rec LinkRecord
-	err := r.db.Get(&rec, "SELECT * FROM links WHERE id = ?", id.String())
+	err := r.db.GetContext(ctx, &rec, "SELECT * FROM links WHERE id = ?", id.String())
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, links.ErrLinkNotFound
@@ -64,9 +65,9 @@ func (r *LinkRepository) GetByID(id links.LinkID) (*links.Link, error) {
 	return r.recordToDomain(rec)
 }
 
-func (r *LinkRepository) GetBySlug(slug links.Slug) (*links.Link, error) {
+func (r *LinkRepository) GetBySlug(ctx context.Context, slug links.Slug) (*links.Link, error) {
 	var rec LinkRecord
-	err := r.db.Get(&rec, "SELECT * FROM links WHERE slug = ?", slug)
+	err := r.db.GetContext(ctx, &rec, "SELECT * FROM links WHERE slug = ?", slug)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, links.ErrLinkNotFound
@@ -76,9 +77,9 @@ func (r *LinkRepository) GetBySlug(slug links.Slug) (*links.Link, error) {
 	return r.recordToDomain(rec)
 }
 
-func (r *LinkRepository) Add(link *links.Link) error {
+func (r *LinkRepository) Add(ctx context.Context, link *links.Link) error {
 	rec := r.domainToRecord(link)
-	_, err := r.db.NamedExec(`
+	_, err := r.db.NamedExecContext(ctx, `
         INSERT INTO links (id, slug, target_url, created_at, updated_at)
         VALUES (:id, :slug, :target_url, :created_at, :updated_at)
     `, &rec)
@@ -88,9 +89,9 @@ func (r *LinkRepository) Add(link *links.Link) error {
 	return nil
 }
 
-func (r *LinkRepository) Update(link *links.Link) error {
+func (r *LinkRepository) Update(ctx context.Context, link *links.Link) error {
 	rec := r.domainToRecord(link)
-	res, err := r.db.NamedExec(`
+	res, err := r.db.NamedExecContext(ctx, `
         UPDATE links
 		SET slug = :slug, target_url = :target_url, updated_at = :updated_at
         WHERE id = :id
@@ -105,8 +106,8 @@ func (r *LinkRepository) Update(link *links.Link) error {
 	return nil
 }
 
-func (r *LinkRepository) Remove(link *links.Link) error {
-	res, err := r.db.Exec("DELETE FROM links WHERE id = ?", link.ID())
+func (r *LinkRepository) Remove(ctx context.Context, link *links.Link) error {
+	res, err := r.db.ExecContext(ctx, "DELETE FROM links WHERE id = ?", link.ID())
 	if err != nil {
 		return fmt.Errorf("remove link: %w", err)
 	}
